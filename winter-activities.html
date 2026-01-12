@@ -136,7 +136,7 @@
 
         // image handling: encode as base64 and send in JSON payload
         const file = imageInput.files[0];
-        if (file && file.size > 0) {
+        if (file) {
           payload.image_name = file.name;
           payload.image_type = file.type;
           payload.image_base64 = await fileToBase64(file); // large images will bloat payload
@@ -184,7 +184,10 @@
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => { reader.abort(); reject(new Error('Problem reading file.')); };
-        reader.onload = () => { resolve(reader.result.split(',', 2)[1]); }; // return only base64 data, not data:<type>;base64,
+        reader.onload = () => { 
+          // Extract base64 data by removing the data URL prefix (data:[<mediatype>][;base64],)
+          resolve(reader.result.substring(reader.result.indexOf(',') + 1)); 
+        };
         reader.readAsDataURL(file);
       });
     }

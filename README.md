@@ -129,7 +129,7 @@ curl -X POST http://localhost:3000/activities \
 ```
 
 ### Backend recommendations for images
-- Option A (recommended for production): accept multipart/form-data and store the binary on disk or in object storage (S3). This avoids large JSON bodies and base64 overhead.
+- Option A (recommended for production): accept multipart/form-data and store the binary file on disk or in object storage (S3). This avoids large JSON bodies and base64 overhead.
 - Option B (simpler): accept base64 in `image_base64`. Decode and save, but watch memory limits and payload size constraints.
 - Validate the image type (`image_type`) and size server-side.
 
