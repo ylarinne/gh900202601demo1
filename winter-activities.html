@@ -1,163 +1,208 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Winter Holiday Activities</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Winter Activities — Create</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body { padding: 2rem; }
+    .preview-img { max-width: 100%; max-height: 200px; display:block; margin-top:0.5rem; }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">Winter Holiday Activities</h1>
-        
-        <!-- Filter Controls -->
-        <div class="mb-6 flex flex-wrap gap-4 justify-center">
-            <button id="filter-all" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors">
-                All Activities
-            </button>
-            <button id="filter-snow" class="px-6 py-2 rounded-lg bg-white text-blue-600 font-semibold hover:bg-blue-50 transition-colors border-2 border-blue-600">
-                ❄️ Snow Required
-            </button>
-            <button id="filter-no-snow" class="px-6 py-2 rounded-lg bg-white text-green-600 font-semibold hover:bg-green-50 transition-colors border-2 border-green-600">
-                ✓ No Snow Needed
-            </button>
-            <button id="filter-free" class="px-6 py-2 rounded-lg bg-white text-purple-600 font-semibold hover:bg-purple-50 transition-colors border-2 border-purple-600">
-                💰 Free Activities
-            </button>
+<body>
+  <main class="container">
+    <h1 class="mb-3">Create a Winter Activity</h1>
+    <p class="text-muted">Fill the form below to create a new winter activity. The form will POST JSON to the API endpoint (default: <code>/activities</code>).</p>
+
+    <form id="activity-form" class="needs-validation" novalidate>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label for="title" class="form-label">Title</label>
+          <input id="title" name="title" class="form-control" required />
+          <div class="invalid-feedback">Title is required.</div>
         </div>
-        
-        <div id="activities-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Activities will be rendered here -->
+
+        <div class="col-md-4">
+          <label for="date" class="form-label">Date</label>
+          <input id="date" name="date" type="date" class="form-control" required />
+          <div class="invalid-feedback">Please pick a date.</div>
         </div>
-    </div>
 
-    <script>
-        const API_URL = 'http://localhost:3000/api/activities';
-        let allActivities = [];
-        let currentFilter = 'all';
+        <div class="col-md-6">
+          <label for="location" class="form-label">Location</label>
+          <input id="location" name="location" class="form-control" required />
+          <div class="invalid-feedback">Location is required.</div>
+        </div>
 
-        async function fetchActivities() {
-            try {
-                const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch activities');
-                }
-                allActivities = await response.json();
-                renderActivities(allActivities);
-            } catch (error) {
-                console.error('Error fetching activities:', error);
-                const container = document.getElementById('activities-container');
-                container.innerHTML = `
-                    <div class="col-span-full text-center p-8">
-                        <p class="text-red-600 text-xl">Failed to load activities. Please make sure the server is running.</p>
-                        <p class="text-gray-600 mt-2">Run: npm start</p>
-                    </div>
-                `;
-            }
+        <div class="col-md-3">
+          <label for="difficulty" class="form-label">Difficulty</label>
+          <select id="difficulty" name="difficulty" class="form-select" required>
+            <option value="">Choose...</option>
+            <option value="easy">Easy</option>
+            <option value="moderate">Moderate</option>
+            <option value="hard">Hard</option>
+          </select>
+          <div class="invalid-feedback">Please select difficulty.</div>
+        </div>
+
+        <div class="col-md-3">
+          <label for="duration" class="form-label">Duration (hours)</label>
+          <input id="duration" name="duration" type="number" min="0" step="0.25" class="form-control" required />
+          <div class="invalid-feedback">Please provide duration.</div>
+        </div>
+
+        <div class="col-md-4">
+          <label for="capacity" class="form-label">Capacity</label>
+          <input id="capacity" name="capacity" type="number" min="1" class="form-control" />
+        </div>
+
+        <div class="col-md-4">
+          <label for="price" class="form-label">Price (optional, in local currency)</label>
+          <input id="price" name="price" type="number" min="0" step="0.01" class="form-control" />
+        </div>
+
+        <div class="col-12">
+          <label for="tags" class="form-label">Tags (comma separated)</label>
+          <input id="tags" name="tags" class="form-control" placeholder="e.g. skiing, beginner, family" />
+        </div>
+
+        <div class="col-12">
+          <label for="image" class="form-label">Image (optional)</label>
+          <input id="image" name="image" type="file" accept="image/*" class="form-control" />
+          <img id="image-preview" class="preview-img d-none" alt="Image preview" />
+        </div>
+
+        <div class="col-12">
+          <label for="description" class="form-label">Description</label>
+          <textarea id="description" name="description" rows="6" class="form-control" required></textarea>
+          <div class="invalid-feedback">Description is required.</div>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+          <button id="submit-btn" type="submit" class="btn btn-primary">Create Activity</button>
+          <button id="reset-btn" type="reset" class="btn btn-outline-secondary">Reset</button>
+          <div id="status" class="ms-3 align-self-center"></div>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // Change this to your API endpoint as needed
+    const API_ENDPOINT = '/activities';
+
+    const form = document.getElementById('activity-form');
+    const statusEl = document.getElementById('status');
+    const imageInput = document.getElementById('image');
+    const preview = document.getElementById('image-preview');
+
+    // preview image when chosen
+    imageInput.addEventListener('change', () => {
+      const file = imageInput.files[0];
+      if (!file) { preview.src = ''; preview.classList.add('d-none'); return; }
+      const url = URL.createObjectURL(file);
+      preview.src = url;
+      preview.classList.remove('d-none');
+    });
+
+    // Basic Bootstrap validation
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      form.classList.add('was-validated');
+      if (!form.checkValidity()) {
+        statusEl.textContent = 'Please fix form errors.';
+        statusEl.className = 'text-danger';
+        return;
+      }
+      document.getElementById('submit-btn').disabled = true;
+      statusEl.textContent = 'Submitting...';
+      statusEl.className = 'text-muted';
+
+      try {
+        // build payload
+        const payload = {
+          title: form.title.value.trim(),
+          date: form.date.value,
+          location: form.location.value.trim(),
+          difficulty: form.difficulty.value,
+          duration_hours: parseFloat(form.duration.value) || 0,
+          capacity: form.capacity.value ? parseInt(form.capacity.value, 10) : null,
+          price: form.price.value ? parseFloat(form.price.value) : null,
+          tags: form.tags.value ? form.tags.value.split(',').map(t => t.trim()).filter(Boolean) : [],
+          description: form.description.value.trim(),
+          created_at: new Date().toISOString()
+        };
+
+        // image handling: encode as base64 and send in JSON payload
+        const file = imageInput.files[0];
+        if (file) {
+          payload.image_name = file.name;
+          payload.image_type = file.type;
+          payload.image_base64 = await fileToBase64(file); // large images will bloat payload
         }
 
-        function renderActivities(winterActivities) {
-            const container = document.getElementById('activities-container');
-            container.innerHTML = ''; // Clear existing content
-            
-            if (winterActivities.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center p-8">
-                        <p class="text-gray-600 text-xl">No activities found for this filter.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            winterActivities.forEach(activity => {
-                const card = document.createElement('div');
-                card.className = 'bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300';
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h2 class="text-2xl font-semibold text-gray-800">${activity.name}</h2>
-                        <span class="text-xs px-2 py-1 rounded-full ${activity.isSnowNeeded ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}">
-                            ${activity.isSnowNeeded ? '❄️ Snow Required' : '✓ No Snow Needed'}
-                        </span>
-                    </div>
-                    <div class="text-3xl font-bold text-blue-600">
-                        ${activity.price === 0 ? 'FREE' : `$${activity.price}`}
-                    </div>
-                    <p class="text-sm text-gray-500 mt-2">Activity ID: ${activity.id}</p>
-                `;
-                
-                container.appendChild(card);
-            });
+        // POST JSON
+        const res = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error('Server error: ' + res.status + ' — ' + text);
         }
 
-        function applyFilter(filter) {
-            currentFilter = filter;
-            let filtered = [];
+        const result = await res.json().catch(() => ({}));
+        statusEl.textContent = 'Activity created successfully.';
+        statusEl.className = 'text-success';
+        form.reset();
+        preview.src = '';
+        preview.classList.add('d-none');
 
-            switch(filter) {
-                case 'snow':
-                    filtered = allActivities.filter(a => a.isSnowNeeded === true);
-                    break;
-                case 'no-snow':
-                    filtered = allActivities.filter(a => a.isSnowNeeded === false);
-                    break;
-                case 'free':
-                    filtered = allActivities.filter(a => a.price === 0);
-                    break;
-                default:
-                    filtered = allActivities;
-            }
-
-            renderActivities(filtered);
-            updateActiveButton(filter);
+        // If API returned URL, open it or show it
+        if (result && result.url) {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.target = '_blank';
+          a.textContent = 'View activity';
+          statusEl.appendChild(document.createTextNode(' — '));
+          statusEl.appendChild(a);
         }
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Failed to create activity: ' + err.message;
+        statusEl.className = 'text-danger';
+      } finally {
+        document.getElementById('submit-btn').disabled = false;
+      }
+    });
 
-        function updateActiveButton(filter) {
-            // Remove active state from all buttons
-            document.querySelectorAll('button[id^="filter-"]').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'bg-green-600', 'bg-purple-600', 'text-white');
-                btn.classList.add('bg-white');
-                
-                if (btn.id === 'filter-snow') {
-                    btn.classList.add('text-blue-600', 'border-blue-600');
-                } else if (btn.id === 'filter-no-snow') {
-                    btn.classList.add('text-green-600', 'border-green-600');
-                } else if (btn.id === 'filter-free') {
-                    btn.classList.add('text-purple-600', 'border-purple-600');
-                } else {
-                    btn.classList.add('text-blue-600', 'border-blue-600');
-                }
-            });
+    // helper: file -> base64
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => { reader.abort(); reject(new Error('Problem reading file.')); };
+        reader.onload = () => { 
+          // Extract base64 data by removing the data URL prefix (data:[<mediatype>][;base64],)
+          resolve(reader.result.substring(reader.result.indexOf(',') + 1)); 
+        };
+        reader.readAsDataURL(file);
+      });
+    }
 
-            // Add active state to current button
-            const activeBtn = document.getElementById(`filter-${filter}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-white');
-                
-                if (filter === 'snow') {
-                    activeBtn.classList.add('bg-blue-600', 'text-white');
-                    activeBtn.classList.remove('text-blue-600');
-                } else if (filter === 'no-snow') {
-                    activeBtn.classList.add('bg-green-600', 'text-white');
-                    activeBtn.classList.remove('text-green-600');
-                } else if (filter === 'free') {
-                    activeBtn.classList.add('bg-purple-600', 'text-white');
-                    activeBtn.classList.remove('text-purple-600');
-                } else {
-                    activeBtn.classList.add('bg-blue-600', 'text-white');
-                    activeBtn.classList.remove('text-blue-600');
-                }
-            }
-        }
+    // Alternative: if your backend accepts multipart/form-data, you can send FormData:
+    // const fd = new FormData(form);
+    // const res = await fetch(API_ENDPOINT, { method: 'POST', body: fd });
 
-        // Setup filter event listeners
-        document.getElementById('filter-all').addEventListener('click', () => applyFilter('all'));
-        document.getElementById('filter-snow').addEventListener('click', () => applyFilter('snow'));
-        document.getElementById('filter-no-snow').addEventListener('click', () => applyFilter('no-snow'));
-        document.getElementById('filter-free').addEventListener('click', () => applyFilter('free'));
-
-        // Fetch and render activities when page loads
-        fetchActivities();
-    </script>
+    // Optionally, provide keyboard-driven quick submit (Ctrl+Enter)
+    form.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
+        ev.preventDefault();
+        form.requestSubmit();
+      }
+    });
+  </script>
 </body>
 </html>

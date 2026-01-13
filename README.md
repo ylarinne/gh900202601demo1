@@ -4,12 +4,13 @@ A full-stack web application for browsing and managing winter holiday activities
 
 ## Features
 
-- 🎿 Browse winter activities with details (name, price, snow requirement)
+- 🎿 Create and manage winter activities
+- 📝 Comprehensive form for activity creation
 - 🔍 Filter activities by snow requirement or price (free activities)
-- 📱 Responsive design with Tailwind CSS
+- 📱 Responsive design with Bootstrap CSS
 - 🔄 Full CRUD operations via REST API
 - 💾 MongoDB database integration
-- 🎨 Beautiful card-based UI with hover effects
+- 🎨 Beautiful form-based UI with validation
 
 ## Tech Stack
 
@@ -20,7 +21,7 @@ A full-stack web application for browsing and managing winter holiday activities
 
 ### Frontend
 - **HTML5**
-- **Tailwind CSS** (via CDN)
+- **Bootstrap CSS** (via CDN)
 - **Vanilla JavaScript** with Fetch API
 
 ## Prerequisites
@@ -80,6 +81,62 @@ http-server -p 8080
 ```
 
 Then navigate to `http://localhost:8080/winter-activities.html`
+
+## Winter Activities Form
+
+The `winter-activities.html` file provides a standalone HTML form for creating new winter activities.
+
+### Features
+- Collects title, date, location, difficulty, duration, capacity, price, tags, description, and an optional image.
+- By default the page serializes the form to JSON and sends a POST request to the API endpoint `/activities`.
+- Image (if provided) is sent as base64 in `image_base64` with `image_name` and `image_type`. (This is simple but can produce large payloads; see backend recommendations.)
+- Includes an alternative commented code snippet for sending `multipart/form-data` with a `FormData` object if your server prefers that.
+
+### Running locally
+You can open `winter-activities.html` directly in the browser, but for fetch requests to work (CORS / same-origin) you may want to serve the directory with a simple local server:
+
+```bash
+# from the repository root where winter-activities.html resides
+python3 -m http.server 8000
+# then open http://localhost:8000/winter-activities.html
+```
+
+### Changing the API endpoint
+Edit the `API_ENDPOINT` constant near the top of the file's `<script>` block to point to your create-activity endpoint, for example:
+```js
+const API_ENDPOINT = '/api/activities'; // or 'https://api.example.com/activities'
+```
+If your backend only accepts `multipart/form-data`, use the commented `FormData` alternative inside the JS and remove the `Content-Type: application/json` header.
+
+### Example curl (JSON)
+If you want to test the same JSON shape from the command line (without image):
+
+```bash
+curl -X POST http://localhost:3000/activities \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title":"Evening Ski Trip",
+    "date":"2026-01-17",
+    "location":"North Hill",
+    "difficulty":"moderate",
+    "duration_hours":3,
+    "capacity":12,
+    "price":20.00,
+    "tags":["skiing","evening"],
+    "description":"An evening group ski trip with lights.",
+    "created_at":"2026-01-12T12:00:00Z"
+  }'
+```
+
+### Backend recommendations for images
+- Option A (recommended for production): accept multipart/form-data and store the binary file on disk or in object storage (S3). This avoids large JSON bodies and base64 overhead.
+- Option B (simpler): accept base64 in `image_base64`. Decode and save, but watch memory limits and payload size constraints.
+- Validate the image type (`image_type`) and size server-side.
+
+### Notes / Caveats
+- The HTML form ships with client-side validation, but you must also validate on the server.
+- Base64 image encoding increases payload size by ~33%. For multiple/large images use multipart upload.
+- Adjust the UI, fields names, or JSON shape to match your API schema.
 
 ## API Endpoints
 
